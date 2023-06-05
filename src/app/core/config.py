@@ -5,6 +5,8 @@ from pydantic import BaseSettings, EmailStr, PostgresDsn, validator
 
 class Settings(BaseSettings):
     SECRET_KEY: str
+    FIRST_SUPERUSER: str
+    FIRST_SUPERUSER_PASSWORD: str
 
     POSTGRES_SERVER: str
     POSTGRES_USER: str
