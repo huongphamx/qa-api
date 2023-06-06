@@ -1,0 +1,8 @@
+fastapi[all]
+uvicorn
+sqlalchemy
+asyncpg
+alembic
+passlib[bcrypt]
+pyjwt[crypto]
+tenacity
