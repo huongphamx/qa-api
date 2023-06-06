@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, Type
+from typing import Any, Generic, TypeVar, Type
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
@@ -17,7 +17,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def __init__(self, model: Type[ModelType]):
         self.model = model
 
-    async def get(self, db: AsyncSession, id: int):
+    async def get(self, db: AsyncSession, id: Any):
         return await db.scalar(select(self.model).where(self.model.id == id))
 
     async def create(self, db: AsyncSession, obj_in: CreateSchemaType) -> ModelType:
