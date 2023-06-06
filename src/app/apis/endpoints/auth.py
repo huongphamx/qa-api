@@ -9,7 +9,7 @@ from app.core.security import create_access_token
 router = APIRouter()
 
 
-@router.post("/login", response_model=schemas.Token)
+@router.post("/login-token", response_model=schemas.Token)
 async def login(
     db: AsyncSession = Depends(get_async_db),
     form_data: OAuth2PasswordRequestForm = Depends(),
