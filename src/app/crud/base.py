@@ -20,6 +20,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def get(self, db: AsyncSession, id: Any):
         return await db.scalar(select(self.model).where(self.model.id == id))
 
+    def query_get_multi(self):
+        query = select(self.model).order_by(self.model.id.desc())
+        # query = select(self.model).order_by(self.model.created_at.desc())
+        return query
+
     async def create(self, db: AsyncSession, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)
         db_obj = self.model(**obj_in_data)

@@ -18,6 +18,7 @@ class LecturerUpdate(LecturerBase):
 
 
 class Lecturer(LecturerBase):
+    id: int
     email: str
     is_head: bool
     fullname: str
