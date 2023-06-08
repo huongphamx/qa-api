@@ -42,3 +42,16 @@ async def create_new_lecturer(
             status_code=status.HTTP_400_BAD_REQUEST, detail="LECTURER_EXISTED"
         )
     return await crud.lecturer.create(db, obj_in)
+
+
+@router.delete("/{lecturer_id}", response_model=schemas.Lecturer)
+async def delete_lecturer(
+    *, lecturer_id: int, db: AsyncSession = Depends(get_async_db)
+):
+    db_obj = await crud.lecturer.get(db, lecturer_id)
+    if db_obj is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="LECTURER_NOT_EXISTED"
+        )
+    obj = await crud.lecturer.remove(db, db_obj)
+    return obj

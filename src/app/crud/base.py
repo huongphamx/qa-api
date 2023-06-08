@@ -2,7 +2,7 @@ from typing import Any, Generic, TypeVar, Type
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base_model import Base
@@ -31,4 +31,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
+        return db_obj
+
+    async def remove(self, db: AsyncSession, db_obj: ModelType) -> ModelType:
+        await db.delete(db_obj)
+        await db.commit()
         return db_obj
