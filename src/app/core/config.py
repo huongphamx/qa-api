@@ -32,5 +32,7 @@ class Settings(BaseSettings):
     GMAIL_SMTP_SERVER: str
     GMAIL_FROM_NAME: str
 
+    FRONTEND_HOST: str
+
 
 settings = Settings()

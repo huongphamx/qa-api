@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class LecturerBase(BaseModel):
@@ -13,6 +13,17 @@ class LecturerCreate(LecturerBase):
     fullname: str
 
 
+class LecturerInvitation(BaseModel):
+    email: EmailStr
+
+
+class LecturerAcceptInvitation(BaseModel):
+    token: str
+    fullname: str
+    email: EmailStr
+    password: str
+
+
 class LecturerUpdate(LecturerBase):
     password: str | None
 
@@ -21,6 +32,7 @@ class Lecturer(LecturerBase):
     id: int
     email: str
     is_head: bool
+    is_active: bool
     fullname: str
 
     class Config:

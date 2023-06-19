@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,3 +14,5 @@ class Lecturer(Base):
     hashed_password: Mapped[str]
     is_head: Mapped[bool] = mapped_column(default=False)
     fullname: Mapped[str] = mapped_column(String(255))
+    is_active: Mapped[bool] = mapped_column(default=False, nullable=True)
+    last_invitation_at: Mapped[datetime.datetime] = mapped_column(nullable=True)
