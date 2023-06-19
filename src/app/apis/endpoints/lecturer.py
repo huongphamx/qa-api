@@ -1,12 +1,17 @@
+import datetime
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi_mail import MessageSchema, MessageType
+import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models, schemas, crud
 from app.apis.deps import get_current_lecturer, get_current_head_lecturer, get_async_db
+from app.core.config import settings
 from app.core.email_config import fm
 from app.core.paginate import PagedResponseSchema, PageParams, paginate
+from app.core.security import create_invitation_token, get_password_hash
 
 router = APIRouter()
 
@@ -65,7 +70,7 @@ async def invite_lecturer(
     *,
     db: AsyncSession = Depends(get_async_db),
     invitation_data: schemas.LecturerInvitation,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
 ):
     """
     First check if lecturer email existed
@@ -81,25 +86,36 @@ async def invite_lecturer(
             status_code=status.HTTP_400_BAD_REQUEST, detail="LECTURER_EXISTED"
         )
 
-    # TODO: generate invitation token
-    html = """<p>Hi this test mail, thanks for using Fastapi-mail</p> """  # TODO
+    invitation_token = create_invitation_token(invitation_data.email)
+    invitation_link = (
+        f"{settings.FRONTEND_HOST}/lecturers/accept-invitation?token={invitation_token}"
+    )
+    template_body = {"invitation_link": invitation_link}
     message = MessageSchema(
-        subject="Fastapi mail module",
+        subject="Accept invitation request",
         recipients=[invitation_data.email],
-        body=html,
+        template_body=template_body,
         subtype=MessageType.html,
     )
     if db_obj is not None and not db_obj.is_active:
-        background_tasks.add_task(fm.send_message, message)
+        background_tasks.add_task(
+            fm.send_message, message, template_name="invitation.html"
+        )
+        db_obj.last_invitation_at = datetime.datetime.now()
+        db.add(db_obj)
+        await db.commit()
 
     if db_obj is None:
-        background_tasks.add_task(fm.send_message, message)
+        background_tasks.add_task(
+            fm.send_message, message, template_name="invitation.html"
+        )
         db_obj = models.Lecturer(
             email=invitation_data.email,
             is_head=False,
             is_active=False,
             hashed_password="",
-            full_name="Not set",
+            fullname="Not set",
+            last_invitation_at=datetime.datetime.now(),
         )
         db.add(db_obj)
         await db.commit()
@@ -109,6 +125,25 @@ async def invite_lecturer(
     )
 
 
-@router.post("/accept-invitation")
-async def accept_invitation():
-    pass
+@router.post("/accept-invitation", response_model=schemas.Lecturer)
+async def accept_invitation(
+    *,
+    db: AsyncSession = Depends(get_async_db),
+    accept_data: schemas.LecturerAcceptInvitation,
+):
+    try:
+        _ = jwt.decode(accept_data.token, settings.SECRET_KEY, ["HS256"])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="EXPIRED_TOKEN"
+        )
+    except jwt.DecodeError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="BAD_TOKEN")
+    db_obj = await crud.lecturer.get_by_email(db, email=accept_data.email)
+    db_obj.fullname = accept_data.fullname
+    db_obj.hashed_password = get_password_hash(accept_data.password)
+    db_obj.is_active = True
+    db.add(db_obj)
+    await db.commit()
+    await db.refresh(db_obj)
+    return db_obj

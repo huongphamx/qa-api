@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import Any
 
 from passlib.context import CryptContext
@@ -20,5 +21,12 @@ def get_password_hash(password: str):
 
 def create_access_token(subject: str | Any):
     to_encode = {"sub": str(subject)}
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def create_invitation_token(subject: str | Any):
+    exp = datetime.utcnow() + timedelta(days=1)
+    to_encode = {"sub": str(subject), "exp": exp}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
