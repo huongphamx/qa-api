@@ -12,3 +12,4 @@ class Lecturer(Base):
     hashed_password: Mapped[str]
     is_head: Mapped[bool] = mapped_column(default=False)
     fullname: Mapped[str] = mapped_column(String(255))
+    is_active: Mapped[bool] = mapped_column(default=False)

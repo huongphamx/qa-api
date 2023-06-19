@@ -13,6 +13,10 @@ class LecturerCreate(LecturerBase):
     fullname: str
 
 
+class LecturerInvitation(BaseModel):
+    email: str
+
+
 class LecturerUpdate(LecturerBase):
     password: str | None
 
